@@ -3,7 +3,7 @@ import {
   dateKey, parseKey, plantState, latestValue,
   addHabit, logToday, undoToday, renameHabit, deleteHabit,
 } from './garden.js';
-import { loadGarden, saveGarden, downloadBackup, readBackup } from './storage.js';
+import { loadGarden, saveGarden, saveBackup, readBackup } from './storage.js';
 import { loadArt, drawPlant, drawCell, drawWatering, SPOTS_X, WATER_FRAMES } from './sprites.js';
 
 const FRAME_MS = 140;
@@ -219,9 +219,10 @@ document.getElementById('toggle-previews').onclick = () => {
   render();
 };
 
-document.getElementById('export').onclick = () => {
-  garden = { ...garden, lastBackupAt: today };
-  downloadBackup(garden, today);
+document.getElementById('export').onclick = async () => {
+  const backup = { ...garden, lastBackupAt: today };
+  if (!(await saveBackup(backup, today))) return;
+  garden = backup;
   saveGarden(garden);
   renderFooter();
 };
@@ -239,13 +240,26 @@ document.getElementById('import').onchange = async (e) => {
 };
 
 // Roll over to the new day if the tab stays open past midnight.
-setInterval(() => {
+// Roll over to the new day if the app stays open past midnight, and check
+// again whenever it comes back to the front, since phones pause background apps.
+function checkDay() {
   const now = dateKey(new Date());
   if (now !== today) {
     today = now;
     render();
   }
-}, 30000);
+}
+setInterval(checkDay, 30000);
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible') checkDay();
+});
+window.addEventListener('pageshow', checkDay);
+
+// Offline support for the published site. Skipped on localhost so edits
+// show up on a normal reload while developing.
+if ('serviceWorker' in navigator && location.hostname !== 'localhost') {
+  navigator.serviceWorker.register('./sw.js');
+}
 
 render();
 loadArt().then((loaded) => {

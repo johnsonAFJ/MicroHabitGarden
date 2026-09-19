@@ -1,5 +1,6 @@
 // Saves the garden in this browser's localStorage, plus JSON export and import.
-// localStorage is per address, so always open the app at http://localhost:8437.
+// localStorage is per address: localhost:8437, the published site and the
+// home-screen app each keep their own garden. Export and import move it.
 
 import { emptyGarden, validateGarden } from './garden.js';
 
@@ -22,14 +23,29 @@ export function saveGarden(garden) {
   localStorage.setItem(KEY, JSON.stringify(garden));
 }
 
-export function downloadBackup(garden, today) {
-  const blob = new Blob([JSON.stringify(garden, null, 2)], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
+// Saves a backup file. The home-screen app on a phone can't download files,
+// so there it opens the share sheet instead ("Save to Files", AirDrop, email).
+// Returns false if the person cancels the share sheet.
+export async function saveBackup(garden, today) {
+  const name = `micro-habit-garden-${today}.json`;
+  const json = JSON.stringify(garden, null, 2);
+  const installed = matchMedia('(display-mode: standalone)').matches || navigator.standalone;
+  const file = new File([json], name, { type: 'application/json' });
+  if (installed && navigator.canShare?.({ files: [file] })) {
+    try {
+      await navigator.share({ files: [file] });
+      return true;
+    } catch {
+      return false;
+    }
+  }
+  const url = URL.createObjectURL(new Blob([json], { type: 'application/json' }));
   const link = document.createElement('a');
   link.href = url;
-  link.download = `micro-habit-garden-${today}.json`;
+  link.download = name;
   link.click();
   URL.revokeObjectURL(url);
+  return true;
 }
 
 export async function readBackup(file) {

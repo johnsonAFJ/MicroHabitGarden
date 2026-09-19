@@ -18,6 +18,29 @@ Tests cover the garden rules and need no dependencies:
 npm test
 ```
 
+## On your phone
+
+The app is published with GitHub Pages at https://johnsonafj.github.io/MicroHabitGarden/ from the `main` branch of github.com/johnsonAFJ/MicroHabitGarden. To publish a change, commit it and click **Push origin** in GitHub Desktop. Pages updates within a minute or two.
+
+To install it on an iPhone, open the URL in Safari, tap Share, then **Add to Home Screen**. It opens full screen as "Habit Garden" with the pixel art icon.
+
+- **Offline.** `sw.js` caches the app on the phone, so it opens without a signal. It serves the cached copy right away and fetches updates in the background, so after a change is published, the first open shows the old version and the next open shows the new one. Bump `CACHE` in `sw.js` only when its list of files changes. The offline script is skipped on `localhost` so local edits show up on a normal reload.
+- **Separate gardens.** `localhost:8437`, the site in Safari, and the home-screen app each keep their own data. To move a garden, export it from one and import it in the other. On an iPhone, do the import inside the home-screen app, not in Safari.
+- **Backups on the phone.** In the home-screen app, **Export backup** opens the share sheet, where "Save to Files" keeps a copy. On a computer it downloads the file as usual.
+- **Notch and home bar.** The page pads itself with the phone's safe-area insets.
+- **New day.** The date is checked every 30 seconds and again whenever the app comes back to the front.
+
+### Icons
+
+`assets/icon.png` is the 32 × 32 master drawn by Claude Design. `npm run icons` scales it into `assets/icons/` at whole-number sizes, padding with the icon's background color:
+
+| File | Use | Art size |
+| --- | --- | --- |
+| `icon-180.png` | iPhone home screen | 160 px (5×) with a 10 px border |
+| `icon-192.png` | Android, install prompts, browser tab | 192 px (6×) |
+| `icon-512.png` | Large icon | 512 px (16×) |
+| `icon-maskable-512.png` | Launchers that crop icons to a circle | 384 px (12×) with a 64 px border |
+
 ## Files
 
 | Path | What it holds |
@@ -26,6 +49,9 @@ npm test
 | `js/storage.js` | localStorage save and load, JSON export and import |
 | `js/sprites.js` | Loads `assets/*.png` if present, otherwise draws placeholder art in code. Also draws the watering can. |
 | `js/main.js` | Page wiring: the canvas scene, habit cards, animation, midnight rollover |
+| `manifest.webmanifest` | App name, icons and colors for installing on a phone |
+| `sw.js` | Offline support for the published site |
+| `scripts/make-icons.mjs` | Builds `assets/icons/` from `assets/icon.png` |
 | `sheet.html` | Preview of the sprite sheet and terrarium, for checking new art |
 | `tests/garden.test.js` | Tests for `garden.js` |
 

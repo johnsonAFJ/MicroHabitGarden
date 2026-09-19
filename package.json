@@ -4,6 +4,7 @@
   "type": "module",
   "scripts": {
     "start": "python3 -m http.server 8437",
-    "test": "node --test tests/*.test.js"
+    "test": "node --test tests/*.test.js",
+    "icons": "node scripts/make-icons.mjs"
   }
 }
